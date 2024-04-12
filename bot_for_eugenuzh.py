@@ -145,7 +145,7 @@ def main() -> None:
 
 def check_judgind(text_from_user):
     for x in judging_words:
-       if text_from_user.lower() in x.lower():
+       if x.lower() in text_from_user.lower():
            return True
     return False
 

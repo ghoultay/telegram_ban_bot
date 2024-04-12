@@ -33,6 +33,9 @@ api_id = int(data['api_id'])
 api_hash = data['api_hash']
 group_id = int(data['group_id'])
 
+bot_name = data['bot_name']
+inv_link = data['inv_link']
+
 members_usernames = []
 members_ids = []
 bot = TelegramClient('bot', api_id, api_hash).start(bot_token=TOKEN)
@@ -49,7 +52,7 @@ async def get_users(client, group_id):
     members_ids = []
     async for user in client.iter_participants(group_id):
         if not user.deleted:
-            if user.username != 'zeliboba_sumogusov_bot':
+            if user.username != bot_name:
                 members_usernames.append('@'+str(user.username))
                 members_ids.append(user.id)
                 print("id:", user.id, "username:", user.username)
@@ -88,8 +91,7 @@ async def respond_to_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
             temp = list(zip(temp_ids, temp_usernames))
             shuffle(temp)
             chat_id = temp[0][0]
-            # chat_id = 6449100843
-            inv_link = 'https://t.me/+BqJBabnFieE2Y2Ri'
+            
             if temp[0][1] != '@ghoultay':
                 members_usernames.remove(temp[0][1])
                 members_ids.remove(temp[0][0])

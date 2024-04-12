@@ -6,8 +6,7 @@ import configparser
 from random import shuffle
 import time
 import ast
-#test
-#test test
+
 def read_config(filename='bot_config.txt', section='telegrambot'):
     # Create a parser
     parser = configparser.ConfigParser()
@@ -40,6 +39,7 @@ bot = TelegramClient('bot', api_id, api_hash).start(bot_token=TOKEN)
 ban_bot = Bot(TOKEN)
 phrases_ban = ast.literal_eval(data['phrases_ban'])
 phrases_not_ban = ast.literal_eval(data['phrases_not_ban'])
+judging_words = ast.literal_eval(data['judging_words'])
 
 async def get_users(client, group_id):
     global members_usernames
@@ -110,6 +110,8 @@ async def respond_to_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await ban_bot.send_message(chat_id=group_id, text=phrases_ban[0])
         else:
             await update.message.reply_text(phrases_not_ban[0])
+    elif check_judgind(str(message.text)):
+        await update.message.reply_text("Осуждаю")
     else:
         pass
 
@@ -141,6 +143,11 @@ def main() -> None:
     print('Polling...')
     app.run_polling(poll_interval=1)
 
+def check_judgind(text_from_user):
+    for x in judging_words:
+       if text_from_user.lower() in x.lower():
+           return True
+    return False
 
 if __name__ == '__main__':
     main()

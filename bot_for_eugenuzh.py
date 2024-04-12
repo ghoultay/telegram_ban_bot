@@ -7,7 +7,7 @@ from random import shuffle
 import time
 import ast
 #test
-
+#test test
 def read_config(filename='bot_config.txt', section='telegrambot'):
     # Create a parser
     parser = configparser.ConfigParser()

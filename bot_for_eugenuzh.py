@@ -5,13 +5,14 @@ import asyncio
 import configparser
 from random import shuffle
 import time
+import ast
 
 
-def read_config(filename='bot_config.ini', section='telegrambot'):
+def read_config(filename='bot_config.txt', section='telegrambot'):
     # Create a parser
     parser = configparser.ConfigParser()
     # Read config file
-    parser.read(filename)
+    parser.read(filename, encoding='utf-8')
 
     # Get section, default to mysql
     data = {}
@@ -26,6 +27,8 @@ def read_config(filename='bot_config.ini', section='telegrambot'):
 
 data = read_config()
 
+print(data)
+
 TOKEN = data['token']
 api_id = int(data['api_id'])
 api_hash = data['api_hash']
@@ -35,9 +38,8 @@ members_usernames = []
 members_ids = []
 bot = TelegramClient('bot', api_id, api_hash).start(bot_token=TOKEN)
 ban_bot = Bot(TOKEN)
-phrases_ban = ['Пошёл в жопу!', 'Тебя снайпнули в полёте!', 'ПОТРАЧЕНО', 'YOU DIED', 'Маслину поймал!']
-phrases_not_ban = ['Отмена Гены Цидормяна', 'Придержи коней!', 'Осечка :(', 'У вас закончились патроны']
-
+phrases_ban = ast.literal_eval(data['phrases_ban'])
+phrases_not_ban = ast.literal_eval(data['phrases_not_ban'])
 
 async def get_users(client, group_id):
     global members_usernames

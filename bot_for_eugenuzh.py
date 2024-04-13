@@ -130,11 +130,13 @@ async def respond_to_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
         pass
 
 
-async def reply_to_repost(update, context: ContextTypes.DEFAULT_TYPE):
+async def reply_to_repost(update, context):
     if update.message.forward_origin.chat.id == -1001237513492:
-        await update.message.reply_text("👉 Топор +18. Подписаться")
+        message_text = "👉 <a href='https://rt.pornhub.com/gayporn'>Топор +18. Подписаться</a>"
+        await update.message.reply_text(message_text, parse_mode="html", disable_web_page_preview=True)
     else:
         pass
+
 
 
 async def check_friday(context: CallbackContext):
@@ -166,11 +168,9 @@ def main() -> None:
     # Handler for messages containing "@all"
     app.add_handler(MessageHandler(filters.TEXT, respond_to_all))
 
-    # handler to process new member event
-    app.add_handler(MessageHandler(filters.USER, new_member))
-
-    # Handler for reposts from other chats
     app.add_handler(MessageHandler(filters.FORWARDED, reply_to_repost))
+
+    app.add_handler(MessageHandler(filters.USER, new_member))
 
     # Schedule the reminder checker to run every minute
     app.job_queue.run_daily(check_friday, days=(4,),

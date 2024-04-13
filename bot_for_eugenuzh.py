@@ -48,7 +48,10 @@ phrases_ban = ast.literal_eval(data['phrases_ban'])
 phrases_not_ban = ast.literal_eval(data['phrases_not_ban'])
 judging_words = ast.literal_eval(data['judging_words'])
 terror_list = ast.literal_eval(data['terror_list'])
+conviction_list = ast.literal_eval(data['conviction_list'])
 
+max_members_ban = int(data['max_members_ban'])
+period_ban_threshold = int(data['period_ban_threshold'])
 
 async def get_users(client, group_id):
     global members_usernames
@@ -73,8 +76,10 @@ with bot:
 async def respond_to_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message: str = update.message
     message_type: str = update.message.chat.type
+
     global members_usernames
     global members_ids
+    global period_ban_threshold
 
     # check for duplicates
     if len(set(members_ids)) != len(members_ids):
@@ -91,7 +96,9 @@ async def respond_to_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif '🔫' == str(message.text) and message_type == 'supergroup':
         shuffle(phrases_ban)
         shuffle(phrases_not_ban)
-        if len(members_ids) > 1:
+        if len(members_ids) > max_members_ban and period_ban_threshold > 0:
+
+            period_ban_threshold -= 1
 
             temp_usernames = members_usernames.copy()
             temp_ids = members_ids.copy()
@@ -122,7 +129,7 @@ async def respond_to_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text(phrases_not_ban[0])
     elif check_judgind(str(message.text)):
         await update.message.reply_text("Осуждаю")
-    elif message.text.lower() in ['осуждаю', 'асу']:
+    elif message.text.lower() in conviction_list:
         await update.message.reply_text("Поддерживаю")
     elif message.text.lower() in terror_list:
         await update.message.reply_animation('giphy.gif')
@@ -137,6 +144,11 @@ async def reply_to_repost(update, context):
     else:
         pass
 
+
+async def refill_threshold(context: CallbackContext):
+    global period_ban_threshold
+    print('test')
+    period_ban_threshold = int(data['period_ban_threshold'])
 
 
 async def check_friday(context: CallbackContext):
@@ -172,7 +184,8 @@ def main() -> None:
 
     app.add_handler(MessageHandler(filters.USER, new_member))
 
-    # Schedule the reminder checker to run every minute
+    # Schedule the reminder checker to run some days or every hour
+    app.job_queue.run_repeating(refill_threshold, interval=3600)
     app.job_queue.run_daily(check_friday, days=(4,),
                             time=datetime.time(hour=23, minute=59, tzinfo=pytz.timezone('Europe/Minsk')))
     app.job_queue.run_daily(check_friday, days=(5,),

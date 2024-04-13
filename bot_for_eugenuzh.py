@@ -53,6 +53,7 @@ conviction_list = ast.literal_eval(data['conviction_list'])
 max_members_ban = int(data['max_members_ban'])
 period_ban_threshold = int(data['period_ban_threshold'])
 
+
 async def get_users(client, group_id):
     global members_usernames
     global members_ids
@@ -127,27 +128,40 @@ async def respond_to_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await ban_bot.send_message(chat_id=group_id, text=phrases_ban[0])
         else:
             await update.message.reply_text(phrases_not_ban[0])
-    elif check_judgind(str(message.text)):
+
+    elif check_judging(str(message.text)):
         await update.message.reply_text("Осуждаю")
+
     elif message.text.lower() in conviction_list:
         await update.message.reply_text("Поддерживаю")
+
     elif message.text.lower() in terror_list:
         await update.message.reply_animation('giphy.gif')
     else:
         pass
 
 
-async def reply_to_repost(update, context):
-    if update.message.forward_origin.chat.id == -1001237513492:
-        message_text = "👉 <a href='https://rt.pornhub.com/gayporn'>Топор +18. Подписаться</a>"
-        await update.message.reply_text(message_text, parse_mode="html", disable_web_page_preview=True)
-    else:
+async def negative_reply_to_bot(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        if update.message.reply_to_message.from_user.is_bot:
+            await update.message.reply_text("Иди нахуй сука!")
+    except AttributeError as e:
+        pass
+
+
+async def reply_to_repost(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        if update.message.forward_origin.chat.id == -1001237513492:
+            message_text = "👉 <a href='https://rt.pornhub.com/gayporn'>Топор +18. Подписаться</a>"
+            await update.message.reply_text(message_text, parse_mode="html", disable_web_page_preview=True)
+        else:
+            pass
+    except AttributeError as e:
         pass
 
 
 async def refill_threshold(context: CallbackContext):
     global period_ban_threshold
-    print('test')
     period_ban_threshold = int(data['period_ban_threshold'])
 
 
@@ -173,15 +187,32 @@ async def new_member(update, context: ContextTypes.DEFAULT_TYPE):
     await asyncio.sleep(0)
 
 
+def check_judging(text_from_user):
+    text_from_user = text_from_user.replace(" ", "")
+    text_from_user = text_from_user.replace(".", "")
+
+    text_from_user = text_from_user.lower()
+    for x in judging_words:
+        if x.lower() in text_from_user:
+            return True
+    return False
+
+
 # Main function to start the bot
 def main() -> None:
     print('Starting bot...')
     app = Application.builder().token(TOKEN).build()
+
+    # Handler for messages containing "@all"
+    app.add_handler(MessageHandler(filters.REPLY, negative_reply_to_bot))
+
     # Handler for messages containing "@all"
     app.add_handler(MessageHandler(filters.TEXT, respond_to_all))
 
+    # Handler for forwarded messages
     app.add_handler(MessageHandler(filters.FORWARDED, reply_to_repost))
 
+    # Handler for new member in chat
     app.add_handler(MessageHandler(filters.USER, new_member))
 
     # Schedule the reminder checker to run some days or every hour
@@ -194,17 +225,6 @@ def main() -> None:
     # Start the bot
     print('Polling...')
     app.run_polling(poll_interval=1)
-
-
-def check_judgind(text_from_user):
-    text_from_user = text_from_user.replace(" ", "")
-    text_from_user = text_from_user.replace(".", "")
-
-    text_from_user = text_from_user.lower()
-    for x in judging_words:
-        if x.lower() in text_from_user:
-            return True
-    return False
 
 
 if __name__ == '__main__':

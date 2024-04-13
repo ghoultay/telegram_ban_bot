@@ -130,6 +130,22 @@ async def respond_to_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
         pass
 
 
+async def reply_to_repost(update, context: ContextTypes.DEFAULT_TYPE):
+    if update.message.forward_origin.chat.id == -1001237513492:
+        await update.message.reply_text("👉 Топор +18. Подписаться")
+    else:
+        pass
+
+
+async def check_friday(context: CallbackContext):
+
+    now = datetime.datetime.now()
+    if now.weekday() == 3 and now.strftime("%H:%M") == "23:59":
+        await ban_bot.send_message(chat_id=group_id, text='Как же я жду')
+    if now.weekday() == 4 and now.strftime("%H:%M") == "6:00":
+        await ban_bot.send_photo(chat_id=group_id, photo='friday.jpg', caption='УРА!!!!!!!!! ПЯТНИЦА =)')
+
+
 async def new_member(update, context: ContextTypes.DEFAULT_TYPE):
     new_user = update.message.new_chat_members
 
@@ -143,15 +159,6 @@ async def new_member(update, context: ContextTypes.DEFAULT_TYPE):
     await asyncio.sleep(0)
 
 
-async def check_friday(context: CallbackContext):
-
-    now = datetime.datetime.now()
-    if now.weekday() == 3 and now.strftime("%H:%M") == "23:59":
-        await ban_bot.send_message(chat_id=group_id, text='Как же я жду')
-    if now.weekday() == 4 and now.strftime("%H:%M") == "6:00":
-        await ban_bot.send_photo(chat_id=group_id, photo='friday.jpg', caption='УРА!!!!!!!!! ПЯТНИЦА =)')
-
-
 # Main function to start the bot
 def main() -> None:
     print('Starting bot...')
@@ -161,6 +168,9 @@ def main() -> None:
 
     # handler to process new member event
     app.add_handler(MessageHandler(filters.USER, new_member))
+
+    # Handler for reposts from other chats
+    app.add_handler(MessageHandler(filters.FORWARDED, reply_to_repost))
 
     # Schedule the reminder checker to run every minute
     app.job_queue.run_daily(check_friday, days=(4,),

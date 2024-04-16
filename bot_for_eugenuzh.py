@@ -122,6 +122,7 @@ async def respond_to_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
                         "Навели движ на всю беседу! Трупов хватит на месяц вперед!</b>",
                         parse_mode='html')
                     period_ban_threshold = 0
+                    context.job_queue.run_once(refill_threshold, when=1800)
 
                 members_usernames.remove(temp[0][1])
                 members_ids.remove(temp[0][0])
@@ -139,12 +140,14 @@ async def respond_to_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
                         "<b>Я не могу тебя убить, но могу забрать твоего друга! Конец игры!</b>",
                         parse_mode='html')
                     period_ban_threshold = 0
+                    context.job_queue.run_once(refill_threshold, when=1800)
                 if from_user == temp[1][0]:
                     await update.message.reply_text(
                         "<b>Откат, пацаны, вы победили! Тормозните сегодня! Вы показали, что можете дать отпор! " +
                         "Навели движ на всю беседу! Трупов хватит на месяц вперед!</b>",
                         parse_mode='html')
                     period_ban_threshold = 0
+                    context.job_queue.run_once(refill_threshold, when=1800)
 
                 members_usernames.remove(temp[1][1])
                 members_ids.remove(temp[1][0])
@@ -191,6 +194,7 @@ async def reply_to_repost(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def refill_threshold(context: CallbackContext):
+    print('refill_threshold: refilling')
     global period_ban_threshold
     period_ban_threshold = int(data['period_ban_threshold'])
 
@@ -252,7 +256,7 @@ def main() -> None:
     app.add_handler(MessageHandler(filters.USER, new_member))
 
     # Schedule the reminder checker to run some days or every hour
-    app.job_queue.run_repeating(refill_threshold, interval=1800)
+    # app.job_queue.run_repeating(refill_threshold, interval=1800)
     app.job_queue.run_daily(check_friday, days=(4,),
                             time=datetime.time(hour=23, minute=59, tzinfo=pytz.timezone('Europe/Minsk')))
     app.job_queue.run_daily(check_friday, days=(5,),

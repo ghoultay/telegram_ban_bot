@@ -96,6 +96,9 @@ async def respond_to_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
         response_message = f'{tagged_members}'
         await update.message.reply_text(response_message)
     elif '🔫' == str(message.text) and message_type == 'supergroup':
+
+        from_user = message.from_user.id
+
         shuffle(phrases_ban)
         shuffle(phrases_not_ban)
         if period_ban_threshold > 0:
@@ -107,14 +110,14 @@ async def respond_to_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
             temp = list(zip(temp_ids, temp_usernames))
             shuffle(temp)
 
-            if message.from_user.id == temp[0][0]:
-                if temp[0][1] == admin_name:
-                    await update.message.reply_text("Я не могу тебя убить, но для меня ты уже мертв, конец игры")
-                else:
-                    await update.message.reply_text("Откат пацаны. Конец игры")
-                period_ban_threshold = 0
-
             if temp[0][1] != admin_name:
+
+                if from_user == temp[0][0]:
+                    await update.message.reply_text(
+                        "<b>Откат, пацаны, вы победили! Тормозните сегодня! Вы показали, что можете дать отпор! " +
+                        "Навели движ на всю беседу! Трупов хватит на месяц вперед!</b>",
+                        parse_mode='html')
+                    period_ban_threshold = 0
 
                 members_usernames.remove(temp[0][1])
                 members_ids.remove(temp[0][0])
@@ -126,6 +129,18 @@ async def respond_to_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await ban_bot.send_message(chat_id=chat_id, text=inv_link)
                 await ban_bot.send_message(chat_id=group_id, text=phrases_ban[0])
             else:
+
+                if from_user == temp[0][0] and admin_name == temp[0][1]:
+                    await update.message.reply_text(
+                        "<b>Я не могу тебя убить, но могу забрать твоего друга! Конец игры!</b>",
+                        parse_mode='html')
+                    period_ban_threshold = 0
+                if from_user == temp[1][0]:
+                    await update.message.reply_text(
+                        "<b>Откат, пацаны, вы победили! Тормозните сегодня! Вы показали, что можете дать отпор! " +
+                        "Навели движ на всю беседу! Трупов хватит на месяц вперед!</b>",
+                        parse_mode='html')
+                    period_ban_threshold = 0
 
                 members_usernames.remove(temp[1][1])
                 members_ids.remove(temp[1][0])
@@ -155,7 +170,7 @@ async def negative_reply_to_bot(update: Update, context: ContextTypes.DEFAULT_TY
     try:
         if update.message.reply_to_message.from_user.is_bot  \
                 and check_for_negative_words(update.message.text, negative_reply_to_bot_list):
-            await update.message.reply_text("Иди нахуй сука!")
+            await update.message.reply_text("Иди нахуй, сука!")
     except AttributeError as e:
         pass
 

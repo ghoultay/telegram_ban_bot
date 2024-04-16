@@ -4,7 +4,7 @@ from telethon import TelegramClient
 import asyncio
 import configparser
 from random import shuffle
-import ast
+import ast, re
 import datetime, pytz, time
 
 
@@ -49,8 +49,9 @@ phrases_not_ban = ast.literal_eval(data['phrases_not_ban'])
 judging_words = ast.literal_eval(data['judging_words'])
 terror_list = ast.literal_eval(data['terror_list'])
 conviction_list = ast.literal_eval(data['conviction_list'])
+negative_reply_to_bot_list = ast.literal_eval(data['negative_reply_to_bot_list'])
 
-max_members_ban = int(data['max_members_ban'])
+
 period_ban_threshold = int(data['period_ban_threshold'])
 
 
@@ -97,7 +98,7 @@ async def respond_to_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif '🔫' == str(message.text) and message_type == 'supergroup':
         shuffle(phrases_ban)
         shuffle(phrases_not_ban)
-        if len(members_ids) > max_members_ban and period_ban_threshold > 0:
+        if period_ban_threshold > 0:
 
             period_ban_threshold -= 1
 
@@ -107,6 +108,11 @@ async def respond_to_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
             shuffle(temp)
 
             if temp[0][1] != admin_name:
+
+                if message.from_user.id == temp[0][0]:
+                    update.message.reply_text("Откат пацаны")
+                    period_ban_threshold = 0
+
                 members_usernames.remove(temp[0][1])
                 members_ids.remove(temp[0][0])
                 chat_id = temp[0][0]
@@ -117,6 +123,11 @@ async def respond_to_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await ban_bot.send_message(chat_id=chat_id, text=inv_link)
                 await ban_bot.send_message(chat_id=group_id, text=phrases_ban[0])
             else:
+
+                if message.from_user.id == temp[1][0]:
+                    update.message.reply_text("Откат пацаны")
+                    period_ban_threshold = 0
+
                 members_usernames.remove(temp[1][1])
                 members_ids.remove(temp[1][0])
                 chat_id = temp[1][0]
@@ -143,7 +154,8 @@ async def respond_to_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def negative_reply_to_bot(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
-        if update.message.reply_to_message.from_user.is_bot:
+        if update.message.reply_to_message.from_user.is_bot  \
+                and check_for_negative_words(update.message.text, negative_reply_to_bot_list):
             await update.message.reply_text("Иди нахуй сука!")
     except AttributeError as e:
         pass
@@ -198,6 +210,12 @@ def check_judging(text_from_user):
     return False
 
 
+def check_for_negative_words(message, banned_words):
+    pattern = r"\b(" + "|".join(map(re.escape, banned_words)) + r")\b"
+    matches = re.findall(pattern, message, flags=re.IGNORECASE)
+    return len(matches) > 0
+
+
 # Main function to start the bot
 def main() -> None:
     print('Starting bot...')
@@ -216,7 +234,7 @@ def main() -> None:
     app.add_handler(MessageHandler(filters.USER, new_member))
 
     # Schedule the reminder checker to run some days or every hour
-    app.job_queue.run_repeating(refill_threshold, interval=3600)
+    app.job_queue.run_repeating(refill_threshold, interval=1800)
     app.job_queue.run_daily(check_friday, days=(4,),
                             time=datetime.time(hour=23, minute=59, tzinfo=pytz.timezone('Europe/Minsk')))
     app.job_queue.run_daily(check_friday, days=(5,),

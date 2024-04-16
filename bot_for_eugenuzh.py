@@ -50,7 +50,7 @@ judging_words = ast.literal_eval(data['judging_words'])
 terror_list = ast.literal_eval(data['terror_list'])
 conviction_list = ast.literal_eval(data['conviction_list'])
 negative_reply_to_bot_list = ast.literal_eval(data['negative_reply_to_bot_list'])
-
+private_list = ast.literal_eval(data['private_list'])
 
 period_ban_threshold = int(data['period_ban_threshold'])
 
@@ -90,6 +90,10 @@ async def respond_to_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
         members_usernames = [i[1] for i in members]
 
     print(message.text)
+
+    if message_type == 'private':
+        shuffle(private_list)
+        await update.message.reply_text(private_list[0])
 
     if '@all' == str(message.text) and message_type == 'supergroup':
         tagged_members = ' '.join(members_usernames)

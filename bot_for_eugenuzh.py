@@ -107,11 +107,14 @@ async def respond_to_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
             temp = list(zip(temp_ids, temp_usernames))
             shuffle(temp)
 
-            if temp[0][1] != admin_name:
+            if message.from_user.id == temp[0][0]:
+                if temp[0][1] == admin_name:
+                    await update.message.reply_text("Я не могу тебя убить, но для меня ты уже мертв, конец игры")
+                else:
+                    await update.message.reply_text("Откат пацаны. Конец игры")
+                period_ban_threshold = 0
 
-                if message.from_user.id == temp[0][0]:
-                    update.message.reply_text("Откат пацаны")
-                    period_ban_threshold = 0
+            if temp[0][1] != admin_name:
 
                 members_usernames.remove(temp[0][1])
                 members_ids.remove(temp[0][0])
@@ -123,10 +126,6 @@ async def respond_to_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await ban_bot.send_message(chat_id=chat_id, text=inv_link)
                 await ban_bot.send_message(chat_id=group_id, text=phrases_ban[0])
             else:
-
-                if message.from_user.id == temp[1][0]:
-                    update.message.reply_text("Откат пацаны")
-                    period_ban_threshold = 0
 
                 members_usernames.remove(temp[1][1])
                 members_ids.remove(temp[1][0])

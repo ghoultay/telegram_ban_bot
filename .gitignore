@@ -1,3 +1,9 @@
 bot_config.txt
 bot.session
 bot.session-journal
+.env
+*.gif
+*.jpg
+*.exe
+*.rar
+*.spec
